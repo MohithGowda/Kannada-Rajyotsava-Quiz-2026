@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="kn">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#2a060b">
+  <title>{% block title %}ಕನ್ನಡ ರಾಜ್ಯೋತ್ಸವ 2026 · ವೇಗದ ಬೆರಳು ರಸಪ್ರಶ್ನೆ{% endblock %}</title>
+  <link rel="preload" href="{{ url_for('static', filename='fonts/noto-kannada.woff2') }}" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="{% block body_class %}{% endblock %}">
+  <div class="bg" aria-hidden="true">
+    <span class="orb orb-1"></span><span class="orb orb-2"></span><span class="orb orb-3"></span>
+  </div>
+  <div class="flag-stripe" aria-hidden="true"></div>
+  {% block content %}{% endblock %}
+  {% block scripts %}{% endblock %}
+</body>
+</html>

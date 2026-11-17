@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Questions · ಕನ್ನಡ ರಾಜ್ಯೋತ್ಸವ 2026{% endblock %}
+{% block body_class %}page-admin{% endblock %}
+{% block content %}
+<main class="shell wide">
+  <header class="admin-head">
+    <div class="brand">
+      <div class="emblem small" aria-hidden="true"><span>ಕ</span></div>
+      <div><p class="eyebrow">ಕನ್ನಡ ರಾಜ್ಯೋತ್ಸವ 2026</p><h1 class="title mid">ಪ್ರಶ್ನೆ ಬ್ಯಾಂಕ್ · Question bank</h1></div>
+    </div>
+    <nav class="admin-nav">
+      <a class="btn btn-ghost" href="/admin">📊 Control &amp; results</a>
+      <a class="btn btn-ghost" href="/admin/registrations">👥 Registrations</a>
+      <a class="btn btn-ghost" href="/admin/logout">Logout</a>
+    </nav>
+  </header>
+
+  <section class="card">
+    <div class="q-toolbar">
+      <input type="text" id="search" placeholder="Search questions or answers (Kannada / English)…">
+      <select id="themeFilter" aria-label="Filter by theme"></select>
+      <select id="levelFilter" aria-label="Filter by difficulty"></select>
+      <label class="check"><input type="checkbox" id="showAnswers" checked> Show correct answers</label>
+      <span class="muted small" id="shown">–</span>
+    </div>
+  </section>
+
+  <div id="list"></div>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/common.js') }}"></script>
+<script src="{{ url_for('static', filename='js/questions.js') }}"></script>
+{% endblock %}

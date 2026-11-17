@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block body_class %}page-play{% endblock %}
+{% block content %}
+<header class="hud">
+  <div class="hud-block">
+    <span class="hud-label">ತಂಡ</span>
+    <strong class="hud-value ellipsis" id="teamName">{{ team.name }}</strong>
+  </div>
+  <div class="ring" id="ring" aria-label="Time remaining">
+    <svg viewBox="0 0 100 100">
+      <circle class="ring-bg" cx="50" cy="50" r="44"></circle>
+      <circle class="ring-fg" id="ringFg" cx="50" cy="50" r="44"></circle>
+    </svg>
+    <div class="ring-text"><b id="timeText">5:00</b><small>ಸಮಯ</small></div>
+  </div>
+  <div class="hud-block right"></div>
+</header>
+
+<main class="shell">
+  <!-- Waiting room: registration stays open until the host approves the start -->
+  <section class="card center stage" id="phase-waiting">
+    <div class="pulse-icon">🎯</div>
+    <h2 class="stage-title">ಸಿದ್ಧರಾಗಿ!</h2>
+    <p class="lead">ನಿರ್ವಾಹಕರು ರಸಪ್ರಶ್ನೆ ಪ್ರಾರಂಭಿಸುವವರೆಗೆ ಕಾಯಿರಿ…</p>
+    <p class="muted">You're registered! Please wait — the host will start the quiz once every team has joined.</p>
+    <div class="dots"><i></i><i></i><i></i></div>
+    <p class="muted small">ನೋಂದಾಯಿತ ತಂಡಗಳು: <b id="teamCount">–</b></p>
+  </section>
+
+  <!-- Question -->
+  <section class="stage" id="phase-question" hidden>
+    <div class="q-meta">
+      <span class="chip" id="qTheme"></span>
+      <span class="q-num" id="qNum"></span>
+    </div>
+    <div class="card question-card" id="questionCard">
+      <h2 class="q-kn" id="qKn"></h2>
+      <p class="q-en" id="qEn"></p>
+    </div>
+    <div class="options" id="options"></div>
+  </section>
+
+  <!-- Finished: participants never see answers, timings or scores -->
+  <section class="stage" id="phase-result" hidden>
+    <div class="card center result-hero">
+      <div class="pulse-icon">🙏</div>
+      <p class="eyebrow">ಸಮಯ ಮುಗಿಯಿತು!</p>
+      <h2 class="stage-title">{{ team.name }}</h2>
+      <p class="lead">ಭಾಗವಹಿಸಿದ್ದಕ್ಕೆ ಧನ್ಯವಾದಗಳು!</p>
+      <p class="muted">Thank you for playing. The host will announce the results.</p>
+    </div>
+  </section>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/common.js') }}"></script>
+<script src="{{ url_for('static', filename='js/play.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,50 @@
+﻿{% extends "base.html" %}
+{% block title %}ನೋಂದಣಿ · ಕನ್ನಡ ರಾಜ್ಯೋತ್ಸವ 2026{% endblock %}
+{% block body_class %}page-register{% endblock %}
+{% block content %}
+<main class="shell narrow">
+  <header class="hero">
+    <div class="emblem" aria-hidden="true"><span>ಕ</span></div>
+    <p class="eyebrow">ಕನ್ನಡ ರಾಜ್ಯೋತ್ಸವ 2026</p>
+    <h1 class="title">ವೇಗದ ಬೆರಳು <span class="accent">ರಸಪ್ರಶ್ನೆ</span></h1>
+    <p class="subtitle">Fastest Finger First · Karnataka &amp; Kannada Quiz</p>
+  </header>
+
+  <section class="card glow">
+    <h2 class="card-title">ನಿಮ್ಮ ತಂಡವನ್ನು ನೋಂದಾಯಿಸಿ <small>Register your team</small></h2>
+
+    {% if rnd.status != 'waiting' %}
+    <div class="alert" role="alert">ನೋಂದಣಿ ಮುಚ್ಚಲಾಗಿದೆ.<small>Registration is closed.</small></div>
+    {% else %}
+    {% if error %}
+    <div class="alert" role="alert">{{ error[0] }}<small>{{ error[1] }}</small></div>
+    {% endif %}
+
+    <form method="post" autocomplete="off" class="form">
+      <label class="field">
+        <span>ತಂಡದ ಹೆಸರು <em>Team name</em></span>
+        <input type="text" name="name" maxlength="40" minlength="2" required autofocus
+               value="{{ values.name }}" placeholder="ಉದಾ: ಕನ್ನಡ ಕಲಿಗಳು">
+      </label>
+      <label class="field">
+        <span>ಸದಸ್ಯರ ಹೆಸರುಗಳು <em>Members (optional)</em></span>
+        <input type="text" name="members" maxlength="200" value="{{ values.members }}"
+               placeholder="ಹೆಸರು 1, ಹೆಸರು 2, ಹೆಸರು 3">
+      </label>
+      <button class="btn btn-primary btn-block" type="submit">
+        ಸೇರಿಕೊಳ್ಳಿ <span class="btn-sub">Join the quiz →</span>
+      </button>
+    </form>
+    {% endif %}
+  </section>
+
+  <section class="card rules">
+    <h3 class="card-title small">ನಿಯಮಗಳು <small>How it works</small></h3>
+    <ul class="rule-list">
+      <li><span class="ri">⏱️</span><div>{{ '%g' % (rnd.duration / 60) }} ನಿಮಿಷಗಳಲ್ಲಿ ಸಾಧ್ಯವಾದಷ್ಟು ಪ್ರಶ್ನೆಗಳಿಗೆ ಉತ್ತರಿಸಿ.<small>Answer as many questions as you can in {{ '%g' % (rnd.duration / 60) }} minutes.</small></div></li>
+      <li><span class="ri">⚡</span><div>ಸರಿ ಉತ್ತರ ಮತ್ತು ವೇಗ ಎರಡೂ ಮುಖ್ಯ. ತಪ್ಪು ಉತ್ತರಕ್ಕೆ ಅಂಕ ಕಡಿತ.<small>Both accuracy and speed count. Wrong answers lose marks.</small></div></li>
+      <li><span class="ri">🤫</span><div>ಫಲಿತಾಂಶಗಳನ್ನು ಕೊನೆಯಲ್ಲಿ ನಿರ್ವಾಹಕರು ಘೋಷಿಸುತ್ತಾರೆ.<small>Results are announced by the host at the end.</small></div></li>
+    </ul>
+  </section>
+</main>
+{% endblock %}

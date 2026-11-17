@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Admin · ಕನ್ನಡ ರಾಜ್ಯೋತ್ಸವ 2026{% endblock %}
+{% block body_class %}page-register{% endblock %}
+{% block content %}
+<main class="shell narrow">
+  <header class="hero">
+    <div class="emblem" aria-hidden="true"><span>ಕ</span></div>
+    <h1 class="title mid">ನಿರ್ವಾಹಕರ ಪ್ರವೇಶ <small class="subtitle block">Quiz master login</small></h1>
+  </header>
+  <section class="card glow">
+    {% if error %}<div class="alert" role="alert">ತಪ್ಪಾದ ಪಾಸ್‌ವರ್ಡ್<small>Incorrect password</small></div>{% endif %}
+    <form method="post" class="form">
+      <label class="field"><span>ಪಾಸ್‌ವರ್ಡ್ <em>Password</em></span>
+        <input type="password" name="password" required autofocus></label>
+      <button class="btn btn-primary btn-block" type="submit">ಒಳಗೆ ಬನ್ನಿ <span class="btn-sub">Login</span></button>
+    </form>
+  </section>
+</main>
+{% endblock %}

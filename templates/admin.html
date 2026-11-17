@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Admin · ಕನ್ನಡ ರಾಜ್ಯೋತ್ಸವ 2026{% endblock %}
+{% block body_class %}page-admin{% endblock %}
+{% block content %}
+<main class="shell wide">
+  <header class="admin-head">
+    <div class="brand">
+      <div class="emblem small" aria-hidden="true"><span>ಕ</span></div>
+      <div><p class="eyebrow">ಕನ್ನಡ ರಾಜ್ಯೋತ್ಸವ 2026</p><h1 class="title mid">ಕ್ವಿಜ್ ನಿಯಂತ್ರಣ ಫಲಕ</h1></div>
+    </div>
+    <nav class="admin-nav">
+      <a class="btn btn-ghost" href="/admin/registrations">👥 Registrations</a>
+      <a class="btn btn-ghost" href="/admin/questions">❓ Questions</a>
+      <a class="btn btn-ghost" href="/" target="_blank" rel="noopener">📺 QR screen</a>
+      <a class="btn btn-ghost" href="/admin/export/summary.csv">⬇ Leaderboard CSV</a>
+      <a class="btn btn-ghost" href="/admin/export/answers.csv">⬇ Answers CSV</a>
+      <a class="btn btn-ghost" href="/admin/logout">Logout</a>
+    </nav>
+  </header>
+
+  <div class="admin-grid">
+    <section class="card control">
+      <h2 class="card-title small">Round control</h2>
+      <div class="status-line"><span class="status-pill" id="statusPill">waiting</span>
+        <b class="clock-lg" id="clock">5:00</b></div>
+      <label class="field inline"><span>Duration (minutes)</span>
+        <input type="number" id="minutes" min="0.5" max="60" step="0.5" value="5"></label>
+      <div class="btn-col">
+        <button class="btn btn-primary" id="btnStart">▶ Start round</button>
+        <button class="btn btn-danger" id="btnStop">■ End round now</button>
+        <button class="btn btn-ghost" id="btnReset">↺ New round (keep teams)</button>
+        <button class="btn btn-ghost danger-text" id="btnClear">🗑 Clear everything</button>
+      </div>
+      <p class="muted small">Questions in database: <b id="qCount">–</b> · Teams: <b id="tCount">0</b></p>
+    </section>
+
+    <section class="card qr-card center">
+      <p class="eyebrow">Participants scan to join</p>
+      <div class="qr-frame small"><img src="/qr.png" id="qrImg" alt="Join QR"></div>
+      <a class="join-url" id="joinUrl" href="#" target="_blank" rel="noopener">–</a>
+      <p class="muted small">Phones must be on the same Wi-Fi as this computer.</p>
+    </section>
+  </div>
+
+  <section class="card">
+    <h2 class="card-title small">Live leaderboard <small>Click a team to see time taken per question</small></h2>
+    <div class="table-wrap">
+      <table class="table admin-table" id="teamsTable">
+        <thead><tr><th>#</th><th>Team</th><th class="num">Score</th><th class="num">Answered</th><th class="num">Correct</th><th class="num">Wrong</th><th class="num">Avg time (correct)</th><th class="num">Total time</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/common.js') }}"></script>
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+{% endblock %}
