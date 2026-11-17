@@ -71,8 +71,8 @@ themes spread out). Edit that file and restart: if no answers exist yet the new 
 `python app.py --reseed` (this also clears all answers). The admin **Questions** page shows each question's position,
 difficulty and correct answer.
 
-Three easy and three medium questions have been refreshed with more challenging history, geography,
-literature and Yakshagana questions; the difficulty counts and fixed order are unchanged.
+Selected easy and medium questions have been refreshed with more challenging topics and closer
+distractors; the difficulty counts and fixed order are unchanged.
 If answers already exist, export results before reseeding for the next event. A new round clears
 answers; restart the app afterward to load the refreshed bank without removing registered teams.
 
