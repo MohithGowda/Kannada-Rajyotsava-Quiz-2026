@@ -93,9 +93,9 @@ class ScoringAndReviewTests(unittest.TestCase):
 
     def test_scoring_boundaries(self):
         for correct, elapsed, expected in (
-            (True, 0, 15), (True, 9999, 15), (True, 10000, 15),
-            (True, 10001, 10), (True, 20000, 10),
-            (False, 0, -5), (False, 10000, -5), (False, 20000, -5),
+            (True, 0, 15), (True, 4999, 15), (True, 5000, 15),
+            (True, 5001, 10), (True, 10000, 10),
+            (False, 0, -5), (False, 5000, -5), (False, 10000, -5),
         ):
             with self.subTest(correct=correct, elapsed=elapsed):
                 self.assertEqual(quiz.answer_points(correct, elapsed), expected)
@@ -105,7 +105,7 @@ class ScoringAndReviewTests(unittest.TestCase):
         with self.client.session_transaction() as session:
             session["team_id"], session["team_token"] = 1, "token"
         for correct, seconds, expected in (
-            (True, 9, 15), (True, 10, 15), (True, 11, 10), (False, 1, -5),
+            (True, 4, 15), (True, 5, 15), (True, 6, 10), (False, 1, -5),
         ):
             with self.subTest(correct=correct, seconds=seconds):
                 self.db.execute("DELETE FROM answers")
@@ -121,21 +121,21 @@ class ScoringAndReviewTests(unittest.TestCase):
                     "question_id": self.question["id"], "choice": choice}).status_code, 409)
 
     def test_existing_answers_are_rescored_once_and_preserved(self):
-        self.add_answer(10000)
-        self.db.execute("DELETE FROM settings WHERE key='scoring_version'")
+        self.add_answer(10000, points=15)
+        self.db.execute("UPDATE settings SET value='fixed:10:5:5:10' WHERE key='scoring_version'")
         original = dict(self.db.execute("SELECT * FROM answers").fetchone())
         quiz.init_db()
         actual = dict(self.db.execute("SELECT * FROM answers").fetchone())
-        self.assertEqual(actual, {**original, "points": 15})
+        self.assertEqual(actual, {**original, "points": 10})
         quiz.init_db()
         self.assertEqual(dict(self.db.execute("SELECT * FROM answers").fetchone()), actual)
-        self.assertEqual(quiz.team_stats(self.db)[0]["score"], 15)
+        self.assertEqual(quiz.team_stats(self.db)[0]["score"], 10)
         self.admin_login()
-        self.assertIn(",15,", self.client.get("/admin/export/summary.csv").text)
+        self.assertIn(",10,", self.client.get("/admin/export/summary.csv").text)
 
     def test_migration_handles_slow_wrong_and_unanswered(self):
         for correct, elapsed, answered, expected in (
-            (True, 10001, True, 10), (False, 1000, True, -5),
+            (True, 5001, True, 10), (False, 1000, True, -5),
             (True, 0, False, 0),
         ):
             with self.subTest(correct=correct, elapsed=elapsed, answered=answered):
@@ -167,7 +167,7 @@ class ScoringAndReviewTests(unittest.TestCase):
             self.db.execute(
                 "INSERT INTO answers (team_id, question_id, seq, served_at, answered_at, "
                 "chosen_idx, is_correct, time_ms, points) "
-                "SELECT 1, id, position, 990, 999, correct_idx, 1, 9000, 15 FROM questions")
+                "SELECT 1, id, position, 990, 994, correct_idx, 1, 4000, 15 FROM questions")
             self.assertTrue(self.client.get("/api/admin/overview").json["review_available"])
             self.assertEqual(self.client.get("/admin/review").status_code, 200)
             self.db.execute(
@@ -182,7 +182,7 @@ class ScoringAndReviewTests(unittest.TestCase):
 
     def test_review_contains_bilingual_answers_and_score_breakdown(self):
         self.admin_login()
-        self.add_answer(10000, points=15)
+        self.add_answer(5000, points=15)
         self.set_round("finished", ended=1)
         response = self.client.get("/admin/review")
         self.assertEqual(response.status_code, 200)
@@ -191,7 +191,8 @@ class ScoringAndReviewTests(unittest.TestCase):
         self.assertIn("Score: 15", html)
         self.assertIn("Base", html)
         self.assertIn("Bonus", html)
-        self.assertIn("10.000 s", html)
+        self.assertIn("5.000 s", html)
+        self.assertIn("5 seconds or less", html)
         answer = self.client.get("/api/admin/team/1").json["answers"][0]
         self.assertEqual((answer["base_points"], answer["bonus"], answer["points"]), (10, 5, 15))
         self.assertEqual(answer["chosen_en"], answer["answer_en"])

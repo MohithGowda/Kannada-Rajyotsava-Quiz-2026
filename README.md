@@ -54,7 +54,7 @@ Hosted participants do not need to be on the server's Wi-Fi network.
 ## Scoring (edit the constants at the top of `app.py`, admin-only)
 
 * Correct: **+10**
-* Bonus: **+5** for a correct answer submitted in **10 seconds or less** (**+15** total).
+* Bonus: **+5** for a correct answer submitted in **5 seconds or less** (**+15** total).
   There is no bonus for a wrong answer.
 * Wrong: **−5**. Unanswered questions: **0**.
 * Ranking: higher score → more correct answers → lower total time on correct answers
@@ -70,5 +70,10 @@ use the recalculated points.
 themes spread out). Edit that file and restart: if no answers exist yet the new bank loads automatically; otherwise run
 `python app.py --reseed` (this also clears all answers). The admin **Questions** page shows each question's position,
 difficulty and correct answer.
+
+Three easy and three medium questions have been refreshed with more challenging history, geography,
+literature and Yakshagana questions; the difficulty counts and fixed order are unchanged.
+If answers already exist, export results before reseeding for the next event. A new round clears
+answers; restart the app afterward to load the refreshed bank without removing registered teams.
 
 For a large crowd you can serve with waitress: `pip install waitress` then `waitress-serve --port 5000 app:app`.
