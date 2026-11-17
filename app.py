@@ -13,6 +13,7 @@ import time
 from contextlib import contextmanager
 from datetime import timedelta
 from functools import wraps
+from urllib.parse import urlsplit
 
 import qrcode
 from flask import (Flask, Response, abort, g, jsonify, redirect,
@@ -276,13 +277,13 @@ def lan_ip():
 
 
 def join_url():
-    override = os.environ.get("PUBLIC_URL")
+    override = os.environ.get("PUBLIC_URL") or os.environ.get("RENDER_EXTERNAL_URL")
     if override:
         return override.rstrip("/") + "/join"
-    host, _, port = request.host.partition(":")
-    if host in ("localhost", "127.0.0.1", "::1", "[::1]"):
-        host = lan_ip()
-    return f"{request.scheme}://{host}:{port or PORT}/join"
+    origin = urlsplit(request.host_url)
+    if origin.hostname in ("localhost", "127.0.0.1", "::1"):
+        return f"{request.scheme}://{lan_ip()}:{origin.port or PORT}{url_for('register')}"
+    return url_for("register", _external=True)
 
 
 @app.get("/qr.png")

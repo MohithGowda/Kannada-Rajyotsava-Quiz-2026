@@ -25,6 +25,16 @@ The console prints the URLs (the IP is your laptop's Wi-Fi IP; phones must be on
 Admin password: `karnataka2026` (override with the `ADMIN_PASSWORD` environment variable).
 Other optional variables: `PORT`, `PUBLIC_URL` (force the host encoded in the QR, e.g. behind a tunnel), `SECRET_KEY`.
 
+### Hosting on Render
+
+The QR automatically uses Render's `RENDER_EXTERNAL_URL` to open the public HTTPS `/join` page,
+without adding the server's internal `PORT`. For a custom domain, set `PUBLIC_URL` to the public
+base URL, e.g. `https://quiz.example.com` (no `/join` or internal port).
+
+If an existing deployment's QR does not open registration, set `PUBLIC_URL` in Render's environment
+settings to `https://<your-service>.onrender.com`, redeploy, then refresh the QR screen and scan again.
+Hosted participants do not need to be on the server's Wi-Fi network.
+
 ## Event flow
 
 1. Project `/` – participants scan the QR, register on `/join` and wait on a "get ready" screen.
