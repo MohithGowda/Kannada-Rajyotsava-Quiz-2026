@@ -45,13 +45,23 @@ Hosted participants do not need to be on the server's Wi-Fi network.
    The server times each question from the moment it is shown until the answer arrives (a refresh does not reset it).
 4. When time is up (or **End round now** in `/admin`) participants see a thank-you screen; the admin sees scores,
    correctness and time taken per question, and can export `Leaderboard CSV` / `Answers CSV`.
+   **Review all team answers** unlocks on the dashboard after the round ends (including the 1.5-second
+   network grace period), or once every registered team answers all questions. The admin-only
+   `/admin/review` page shows each team's questions, submitted and correct answers in both languages,
+   correctness, server-measured time, base points, bonus and total points for evaluation concerns.
 5. **New round** in `/admin` clears answers, keeps the teams and reopens registration.
 
 ## Scoring (edit the constants at the top of `app.py`, admin-only)
 
-* Correct: **+100** plus a speed bonus of up to **+50** (shrinks linearly to 0 over 15 s)
-* Wrong: **−10**
+* Correct: **+10**
+* Bonus: **+5** for a correct answer submitted in **10 seconds or less** (**+15** total).
+  There is no bonus for a wrong answer.
+* Wrong: **−5**. Unanswered questions: **0**.
 * Ranking: higher score → more correct answers → lower total time on correct answers
+
+Existing submitted answers are automatically rescored using these rules on the first startup
+after deployment. Answers and their recorded times are preserved; leaderboard and CSV totals
+use the recalculated points.
 
 ## Questions
 

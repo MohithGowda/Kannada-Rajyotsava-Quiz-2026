@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Answer review · Kannada Rajyotsava 2026{% endblock %}
+{% block body_class %}page-admin{% endblock %}
+{% block content %}
+<main class="shell wide">
+  <header class="admin-head">
+    <h1 class="title mid">Team answer review</h1>
+    <nav class="admin-nav">
+      <a class="btn btn-ghost" href="{{ url_for('admin') }}">Control &amp; results</a>
+      <a class="btn btn-ghost" href="{{ url_for('export_answers') }}">Download answers CSV</a>
+      <a class="btn btn-ghost" href="{{ url_for('admin_logout') }}">Logout</a>
+    </nav>
+  </header>
+  <section class="card">
+    <p>Correct: +{{ correct_points }}. Wrong: -{{ wrong_penalty }}.
+      Bonus: +{{ speed_bonus }} only for a correct answer in {{ speed_window }} seconds or less.
+      Unanswered questions: 0 points.</p>
+    <p class="muted small">Times are measured by the server from when the question is served until the answer arrives.
+      This review is admin-only. Save the CSV before starting a new round, which clears answers.</p>
+    <nav class="admin-nav" aria-label="Teams">
+      {% for team in teams %}
+      <a class="btn btn-ghost" href="#team-{{ team.id }}">{{ team.name }}</a>
+      {% endfor %}
+    </nav>
+  </section>
+  {% for team in teams %}
+  <section class="card" id="team-{{ team.id }}">
+    <h2 class="card-title">{{ team.rank }}. {{ team.name }}</h2>
+    {% if team.members %}<p class="muted">{{ team.members }}</p>{% endif %}
+    <p><b>Score: {{ team.score }}</b> &middot; Answered: {{ team.answered }}/{{ question_count }}
+      &middot; Correct: {{ team.correct }} &middot; Wrong: {{ team.answered - team.correct }}
+      &middot; Unanswered: {{ question_count - team.answered }}</p>
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>#</th><th>Question</th><th>Team's answer</th><th>Correct answer</th>
+          <th>Result</th><th>Time</th><th>Base</th><th>Bonus</th><th>Points</th></tr></thead>
+        <tbody>
+          {% for answer in team.answers %}
+          <tr>
+            <td>{{ answer.seq }}</td>
+            <td>{{ answer.text_kn }}<br><small>{{ answer.text_en }}</small></td>
+            <td>{% if answer.answered %}{{ answer.chosen }}<br><small>{{ answer.chosen_en }}</small>{% else %}Not submitted{% endif %}</td>
+            <td>{{ answer.answer }}<br><small>{{ answer.answer_en }}</small></td>
+            <td><span class="tag {{ 'na' if not answer.answered else 'ok' if answer.correct else 'no' }}">{{ 'Unanswered' if not answer.answered else 'Correct' if answer.correct else 'Wrong' }}</span></td>
+            <td>{{ '%.3f s' % (answer.time_ms / 1000) if answer.answered else '-' }}</td>
+            <td>{{ answer.base_points }}</td><td>{{ answer.bonus }}</td><td>{{ answer.points }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="9">No questions served.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+  {% else %}
+  <section class="card">No teams registered.</section>
+  {% endfor %}
+</main>
+{% endblock %}

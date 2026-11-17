@@ -43,6 +43,8 @@
   </div>
 
   <section class="card">
+    <a class="btn btn-primary" id="reviewLink" href="{{ url_for('admin_review') }}" hidden>Review all team answers</a>
+    <p class="muted small" id="reviewStatus" role="status">Answer review unlocks after the round ends or all registered teams finish every question.</p>
     <h2 class="card-title small">Live leaderboard <small>Click a team to see time taken per question</small></h2>
     <div class="table-wrap">
       <table class="table admin-table" id="teamsTable">

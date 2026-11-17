@@ -28,10 +28,10 @@ DB_PATH = os.path.join(INSTANCE_DIR, "quiz.db")
 
 # ---- Round / scoring configuration -------------------------------------
 ROUND_SECONDS = 5 * 60          # default round length
-CORRECT_POINTS = 100            # base points for a correct answer
-SPEED_BONUS_MAX = 50            # extra points for an instant answer
-SPEED_WINDOW_S = 15             # bonus shrinks linearly to 0 over this many seconds
-WRONG_PENALTY = 10              # points lost for a wrong answer
+CORRECT_POINTS = 10             # base points for a correct answer
+SPEED_BONUS_MAX = 5             # fixed bonus for a correct answer within the window
+SPEED_WINDOW_S = 10
+WRONG_PENALTY = 5               # points lost for a wrong answer
 GRACE_MS = 1500                 # network grace after the round ends
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "karnataka2026")
 PORT = int(os.environ.get("PORT", "5000"))
@@ -146,6 +146,12 @@ def seed_questions(db, replace=False):
                    (bank_hash(),))
 
 
+def answer_points(correct, time_ms):
+    if not correct:
+        return -WRONG_PENALTY
+    return CORRECT_POINTS + (SPEED_BONUS_MAX if time_ms <= SPEED_WINDOW_S * 1000 else 0)
+
+
 def init_db():
     db = connect()
     db.execute("PRAGMA journal_mode=WAL")
@@ -166,6 +172,16 @@ def init_db():
         else:
             print("WARNING: questions_data.py changed but answers already exist. "
                   "Run `python app.py --reseed` to load it (this clears answers).")
+    with tx(db):
+        scoring_version = f"fixed:{CORRECT_POINTS}:{WRONG_PENALTY}:{SPEED_BONUS_MAX}:{SPEED_WINDOW_S}"
+        stored = db.execute("SELECT value FROM settings WHERE key='scoring_version'").fetchone()
+        if stored is None or stored["value"] != scoring_version:
+            rows = db.execute(
+                "SELECT id, is_correct, time_ms FROM answers WHERE answered_at IS NOT NULL").fetchall()
+            db.executemany("UPDATE answers SET points=? WHERE id=?",
+                           [(answer_points(r["is_correct"], r["time_ms"]), r["id"]) for r in rows])
+            db.execute("INSERT OR REPLACE INTO settings (key, value) VALUES ('scoring_version', ?)",
+                       (scoring_version,))
     db.close()
 
 
@@ -431,11 +447,7 @@ def api_answer(team):
             return jsonify(error="bad_request"), 400
         time_ms = int(max(0, now - row["served_at"]) * 1000)
         correct = choice == q["correct_idx"]
-        if correct:
-            bonus = round(SPEED_BONUS_MAX * max(0.0, 1 - time_ms / (SPEED_WINDOW_S * 1000)))
-            points = CORRECT_POINTS + bonus
-        else:
-            points = -WRONG_PENALTY
+        points = answer_points(correct, time_ms)
         db.execute("UPDATE answers SET answered_at=?, chosen_idx=?, is_correct=?, time_ms=?, points=? "
                    "WHERE id=?", (now, choice, int(correct), time_ms, points, row["id"]))
     # Participants get no feedback: correctness, timing and scores are admin-only
@@ -514,7 +526,9 @@ def api_admin_registrations():
 def api_admin_overview():
     db = get_db()
     teams = team_stats(db)
-    return jsonify(round=public_round(get_round(db)), join_url=join_url(),
+    rnd = get_round(db)
+    return jsonify(round=public_round(rnd), join_url=join_url(),
+                   review_available=review_available(db, rnd),
                    question_count=db.execute("SELECT COUNT(*) FROM questions").fetchone()[0],
                    teams=[{**public_team(t), "members": t["members"]} for t in teams])
 
@@ -566,12 +580,7 @@ def api_admin_reset():
     return jsonify(ok=True)
 
 
-@app.get("/api/admin/team/<int:team_id>")
-@admin_required
-def api_admin_team(team_id):
-    db = get_db()
-    if db.execute("SELECT 1 FROM teams WHERE id=?", (team_id,)).fetchone() is None:
-        abort(404)
+def team_answers(db, team_id):
     rows = []
     for r in db.execute(
             "SELECT a.seq, a.chosen_idx, a.is_correct, a.time_ms, a.points, a.answered_at, "
@@ -585,8 +594,53 @@ def api_admin_team(team_id):
                      "correct": bool(r["is_correct"]), "time_ms": r["time_ms"],
                      "points": r["points"],
                      "chosen": options[r["chosen_idx"]]["kn"] if r["chosen_idx"] is not None else None,
-                     "answer": options[r["correct_idx"]]["kn"]})
-    return jsonify(answers=rows)
+                     "chosen_en": options[r["chosen_idx"]]["en"] if r["chosen_idx"] is not None else None,
+                     "answer": options[r["correct_idx"]]["kn"],
+                     "answer_en": options[r["correct_idx"]]["en"],
+                     "base_points": (CORRECT_POINTS if r["is_correct"] else -WRONG_PENALTY)
+                                    if r["answered_at"] is not None else 0,
+                     "bonus": r["points"] - CORRECT_POINTS if r["is_correct"] else 0})
+    return rows
+
+
+@app.get("/api/admin/team/<int:team_id>")
+@admin_required
+def api_admin_team(team_id):
+    db = get_db()
+    if db.execute("SELECT 1 FROM teams WHERE id=?", (team_id,)).fetchone() is None:
+        abort(404)
+    return jsonify(answers=team_answers(db, team_id))
+
+
+def review_available(db, rnd):
+    if rnd["status"] == "waiting":
+        return False
+    if rnd["status"] == "finished":
+        return time.time() > rnd["end_ts"] + GRACE_MS / 1000
+    question_count = db.execute("SELECT COUNT(*) FROM questions").fetchone()[0]
+    return (question_count > 0
+            and db.execute("SELECT 1 FROM teams LIMIT 1").fetchone() is not None
+            and db.execute(
+                "SELECT 1 FROM teams t WHERE "
+                "(SELECT COUNT(*) FROM answers a WHERE a.team_id=t.id "
+                "AND a.answered_at IS NOT NULL) < ? LIMIT 1",
+                (question_count,)).fetchone() is None)
+
+
+@app.get("/admin/review")
+@admin_required
+def admin_review():
+    db = get_db()
+    if not review_available(db, get_round(db)):
+        abort(409, description="Answer review unlocks after the round ends (including network grace) "
+                              "or all registered teams finish every question.")
+    teams = team_stats(db)
+    return render_template(
+        "review.html",
+        teams=[{**t, "answers": team_answers(db, t["id"])} for t in teams],
+        question_count=db.execute("SELECT COUNT(*) FROM questions").fetchone()[0],
+        correct_points=CORRECT_POINTS, wrong_penalty=WRONG_PENALTY,
+        speed_bonus=SPEED_BONUS_MAX, speed_window=SPEED_WINDOW_S)
 
 
 def csv_response(filename, header, rows):

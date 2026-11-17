@@ -52,6 +52,8 @@
     if (!r.ok) return;
     const d = r.data;
     applyRound(d.round);
+    $('#reviewLink').hidden = !d.review_available;
+    $('#reviewStatus').hidden = d.review_available;
     $('#qCount').textContent = d.question_count;
     $('#tCount').textContent = d.teams.length;
     const link = $('#joinUrl');
